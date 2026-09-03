@@ -1,0 +1,18 @@
+{
+  "author": [
+    "neuropolimer"
+  ],
+  "name": "AccessRoleCheck",
+  "short": "Keeps a visual access role in sync with configured key roles.",
+  "description": "Automatically grants a configured access role when a member has any configured key role, removes it when no key roles remain, handles join-time roles, reacts to later role changes, and can synchronize all existing members.",
+  "install_msg": "Loaded `accessrolecheck`. Configure it with `[p]accessrole set @AccessRole`, add key roles with `[p]accessrole addkey @KeyRole`, then use `[p]accessrole sync` if needed. Existing members are also synchronized automatically when the configuration changes and on bot startup.",
+  "tags": [
+    "roles",
+    "access",
+    "automation",
+    "moderation"
+  ],
+  "requirements": [],
+  "min_bot_version": "3.5.0",
+  "end_user_data_statement": "This cog does not persistently store end-user data. It only stores guild configuration containing role IDs."
+}
