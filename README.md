@@ -13,6 +13,25 @@ Cog for Red-DiscordBot 3.5+ that keeps one visual **access role** synchronized w
 - Provides a manual full-server sync command.
 - Ignores bot accounts.
 
+### Strict source of truth
+
+The cog uses **only explicitly configured key-role IDs** to decide whether a member should have the access role.
+
+It deliberately does **not** infer access from:
+
+- channel or category permissions;
+- whether the member can actually see/read a category;
+- the `Administrator` permission;
+- server ownership;
+- any other role that has not been added with `accessrole addkey`.
+
+In other words:
+
+```text
+at least one configured key role -> access role present
+no configured key roles          -> access role absent
+```
+
 ## Install
 
 ```text
@@ -22,6 +41,25 @@ Cog for Red-DiscordBot 3.5+ that keeps one visual **access role** synchronized w
 ```
 
 The repository is currently private. Red's host must be able to authenticate to GitHub for the `repo add` command to clone a private repository. The simplest deployment option is to make the repository public; otherwise configure Git credentials/PAT on the bot host.
+
+## Update without losing settings
+
+Do **not** uninstall the cog or delete the repository. Update the existing installation:
+
+```text
+[p]repo update access-role-check
+[p]cog update accessrolecheck
+[p]reload accessrolecheck
+```
+
+The cog stores its configuration in Red's persistent `Config` storage. Updating/reloading the installed cog does not reset the configured access role or key-role IDs as long as the cog keeps the same Config identifier and configuration keys.
+
+After an update you can verify the stored configuration and resynchronize members:
+
+```text
+[p]accessrole list
+[p]accessrole sync
+```
 
 ## Configure
 
