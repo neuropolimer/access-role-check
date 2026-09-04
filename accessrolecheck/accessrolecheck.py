@@ -15,7 +15,7 @@ class AccessRoleCheck(commands.Cog):
     """Keep one visual access role synchronized with a set of key roles."""
 
     __author__ = "neuropolimer"
-    __version__ = "1.0.0"
+    __version__ = "1.1.0"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -37,15 +37,38 @@ class AccessRoleCheck(commands.Cog):
             await asyncio.sleep(2)
 
             for guild in self.bot.guilds:
-                settings = await self.config.guild(guild).all()
-                if settings["access_role_id"] and settings["key_role_ids"]:
+                guild_config = self.config.guild(guild)
+                settings = await guild_config.all()
+
+                access_role_id = settings["access_role_id"]
+                access_role = guild.get_role(access_role_id) if access_role_id else None
+                if access_role_id and access_role is None:
+                    await guild_config.access_role_id.set(None)
+                    access_role_id = None
+
+                raw_key_ids = [int(role_id) for role_id in settings["key_role_ids"]]
+                valid_key_ids = [role_id for role_id in raw_key_ids if guild.get_role(role_id)]
+                if valid_key_ids != raw_key_ids:
+                    await guild_config.key_role_ids.set(valid_key_ids)
+
+                if access_role is None:
+                    continue
+
+                if valid_key_ids:
                     result = await self._sync_guild(guild)
-                    log.info(
-                        "Startup sync for %s (%s): %s",
-                        guild.name,
-                        guild.id,
-                        dict(result[0]),
+                else:
+                    result = await self._remove_role_from_all(
+                        guild,
+                        access_role,
+                        reason="AccessRoleCheck: no valid key roles remain after startup",
                     )
+
+                log.info(
+                    "Startup sync for %s (%s): %s",
+                    guild.name,
+                    guild.id,
+                    dict(result[0]),
+                )
         except asyncio.CancelledError:
             return
         except Exception:
@@ -176,6 +199,44 @@ class AccessRoleCheck(commands.Cog):
 
         return counts, cache_complete
 
+    async def _remove_role_from_all(
+        self,
+        guild: discord.Guild,
+        role: discord.Role,
+        *,
+        reason: str,
+    ) -> Tuple[Counter, bool]:
+        counts: Counter = Counter()
+        cache_complete = await self._prepare_member_cache(guild)
+
+        for member in list(guild.members):
+            if member.bot:
+                counts["skipped"] += 1
+                continue
+            if role not in member.roles:
+                counts["unchanged"] += 1
+                continue
+            if not self._can_manage_access_role(guild, role) or not self._can_manage_member(member):
+                counts["failed"] += 1
+                continue
+
+            try:
+                await member.remove_roles(role, reason=reason)
+                counts["removed"] += 1
+            except (discord.Forbidden, discord.HTTPException):
+                counts["failed"] += 1
+                log.exception(
+                    "Failed to remove role %s (%s) from %s (%s) in guild %s (%s)",
+                    role.name,
+                    role.id,
+                    member,
+                    member.id,
+                    guild.name,
+                    guild.id,
+                )
+
+        return counts, cache_complete
+
     async def _remove_access_from_all(self, guild: discord.Guild) -> Tuple[Counter, bool]:
         settings = await self.config.guild(guild).all()
         access_role_id = settings["access_role_id"]
@@ -186,36 +247,11 @@ class AccessRoleCheck(commands.Cog):
             counts["unconfigured"] += 1
             return counts, True
 
-        cache_complete = await self._prepare_member_cache(guild)
-
-        for member in list(guild.members):
-            if member.bot:
-                counts["skipped"] += 1
-                continue
-            if access_role not in member.roles:
-                counts["unchanged"] += 1
-                continue
-            if not self._can_manage_access_role(guild, access_role) or not self._can_manage_member(member):
-                counts["failed"] += 1
-                continue
-
-            try:
-                await member.remove_roles(
-                    access_role,
-                    reason="AccessRoleCheck: no key roles remain configured",
-                )
-                counts["removed"] += 1
-            except (discord.Forbidden, discord.HTTPException):
-                counts["failed"] += 1
-                log.exception(
-                    "Failed to remove access role from %s (%s) in guild %s (%s)",
-                    member,
-                    member.id,
-                    guild.name,
-                    guild.id,
-                )
-
-        return counts, cache_complete
+        return await self._remove_role_from_all(
+            guild,
+            access_role,
+            reason="AccessRoleCheck: no key roles remain configured",
+        )
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
@@ -261,14 +297,28 @@ class AccessRoleCheck(commands.Cog):
 
         if settings["access_role_id"] == role.id:
             await guild_config.access_role_id.set(None)
+            return
 
-        key_role_ids = [
-            int(role_id)
-            for role_id in settings["key_role_ids"]
-            if int(role_id) != role.id
-        ]
-        if key_role_ids != settings["key_role_ids"]:
-            await guild_config.key_role_ids.set(key_role_ids)
+        old_key_role_ids = [int(role_id) for role_id in settings["key_role_ids"]]
+        key_role_ids = [role_id for role_id in old_key_role_ids if role_id != role.id]
+        if key_role_ids == old_key_role_ids:
+            return
+
+        await guild_config.key_role_ids.set(key_role_ids)
+
+        access_role_id = settings["access_role_id"]
+        access_role = role.guild.get_role(access_role_id) if access_role_id else None
+        if access_role is None:
+            return
+
+        if key_role_ids:
+            await self._sync_guild(role.guild)
+        else:
+            await self._remove_role_from_all(
+                role.guild,
+                access_role,
+                reason="AccessRoleCheck: last configured key role was deleted",
+            )
 
     @commands.group(name="accessrole", aliases=["ar"], invoke_without_command=True)
     @commands.guild_only()
@@ -297,8 +347,33 @@ class AccessRoleCheck(commands.Cog):
             await ctx.send("Одна и та же роль не может быть одновременно ролью доступа и ролью-ключом.")
             return
 
+        previous_access_role_id = settings["access_role_id"]
+        previous_access_role = (
+            ctx.guild.get_role(previous_access_role_id)
+            if previous_access_role_id and previous_access_role_id != role.id
+            else None
+        )
+
         await self.config.guild(ctx.guild).access_role_id.set(role.id)
         await ctx.send(f"Роль доступа установлена: **{role.name}**. Проверяю существующих участников…")
+
+        if previous_access_role is not None:
+            async with ctx.typing():
+                old_counts, old_complete = await self._remove_role_from_all(
+                    ctx.guild,
+                    previous_access_role,
+                    reason=f"AccessRoleCheck: access role replaced by {ctx.author} ({ctx.author.id})",
+                )
+            await ctx.send(
+                "Старая роль доступа очищена: "
+                f"снято **{old_counts.get('removed', 0)}**, "
+                f"ошибок **{old_counts.get('failed', 0)}**."
+                + (
+                    " Кэш участников был неполным."
+                    if not old_complete
+                    else ""
+                )
+            )
 
         if settings["key_role_ids"]:
             async with ctx.typing():
