@@ -2,13 +2,12 @@
   "author": [
     "neuropolimer"
   ],
-  "description": "Red-DiscordBot cog repository for automatic access-role synchronization.",
-  "install_msg": "Thanks for installing the Access Role Check repository. Install the `accessrolecheck` cog and configure it with `[p]accessrole`.",
-  "short": "Automatic access-role synchronization for Red-DiscordBot.",
+  "description": "Автоматически выдаёт общую роль доступа по настроенным ролям-ключам.",
+  "install_msg": "Установи `accessrolecheck` и настрой роли через `[p]accessrole`.",
+  "short": "Синхронизация общей роли доступа.",
   "tags": [
     "roles",
     "access",
-    "automation",
     "red-discordbot"
   ],
   "min_bot_version": "3.5.0"
