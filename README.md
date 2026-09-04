@@ -1,38 +1,12 @@
 # Access Role Check
 
-Cog for Red-DiscordBot 3.5+ that keeps one visual **access role** synchronized with a configurable set of **key roles**.
+Cog для Red-DiscordBot 3.5+, который автоматически держит общую роль доступа в соответствии с набором ключевых ролей.
 
-## What it does
+Логика намеренно простая: есть хотя бы одна настроенная ключевая роль — общая роль выдаётся. Не осталось ни одной — снимается.
 
-- If a member has **at least one** configured key role, the cog grants the configured access role.
-- If the member loses their **last** key role, the access role is removed.
-- Works when a key role is added or removed later.
-- Handles members who join the server already carrying a key role from an invite/onboarding/access system.
-- Automatically checks existing members when configuration changes.
-- Runs a synchronization pass after bot startup when the cog is already configured.
-- Provides a manual full-server sync command.
-- Ignores bot accounts.
+Права на каналы, `Administrator`, владелец сервера и любые другие роли в расчёт не берутся. Источник истины — только роли, добавленные через `accessrole addkey`.
 
-### Strict source of truth
-
-The cog uses **only explicitly configured key-role IDs** to decide whether a member should have the access role.
-
-It deliberately does **not** infer access from:
-
-- channel or category permissions;
-- whether the member can actually see/read a category;
-- the `Administrator` permission;
-- server ownership;
-- any other role that has not been added with `accessrole addkey`.
-
-In other words:
-
-```text
-at least one configured key role -> access role present
-no configured key roles          -> access role absent
-```
-
-## Install
+## Установка
 
 ```text
 [p]repo add access-role-check https://github.com/neuropolimer/access-role-check
@@ -40,11 +14,44 @@ no configured key roles          -> access role absent
 [p]load accessrolecheck
 ```
 
-The repository is currently private. Red's host must be able to authenticate to GitHub for the `repo add` command to clone a private repository. The simplest deployment option is to make the repository public; otherwise configure Git credentials/PAT on the bot host.
+## Настройка
 
-## Update without losing settings
+Указать общую роль:
 
-Do **not** uninstall the cog or delete the repository. Update the existing installation:
+```text
+[p]accessrole set @ДОСТУП
+```
+
+Добавить роли-ключи:
+
+```text
+[p]accessrole addkey @Роль
+[p]accessrole addkey @ДругаяРоль
+```
+
+Посмотреть настройку и синхронизировать участников:
+
+```text
+[p]accessrole list
+[p]accessrole sync
+```
+
+Остальные команды:
+
+```text
+[p]accessrole removekey @Роль
+[p]accessrole clear
+[p]accessrole unset
+[p]accessrole sync @Member
+```
+
+`[p]ar` — короткий алиас для `[p]accessrole`.
+
+При изменении конфигурации cog проверяет существующих участников. После перезапуска Red также выполняется синхронизация.
+
+## Обновление
+
+Настройки хранятся в `redbot.core.Config`, поэтому обычное обновление cog'а их не сбрасывает:
 
 ```text
 [p]repo update access-role-check
@@ -52,76 +59,4 @@ Do **not** uninstall the cog or delete the repository. Update the existing insta
 [p]reload accessrolecheck
 ```
 
-The cog stores its configuration in Red's persistent `Config` storage. Updating/reloading the installed cog does not reset the configured access role or key-role IDs as long as the cog keeps the same Config identifier and configuration keys.
-
-After an update you can verify the stored configuration and resynchronize members:
-
-```text
-[p]accessrole list
-[p]accessrole sync
-```
-
-## Configure
-
-Set the visual access role:
-
-```text
-[p]accessrole set @ДОСТУП
-```
-
-Add every role that should imply access:
-
-```text
-[p]accessrole addkey @🔑 Wardogs
-[p]accessrole addkey @AnotherKeyRole
-```
-
-Adding a key immediately triggers a pass over existing members, so users who already have that key will receive the access role automatically.
-
-Check configuration:
-
-```text
-[p]accessrole list
-```
-
-Force a full synchronization at any time:
-
-```text
-[p]accessrole sync
-```
-
-Synchronize one member only:
-
-```text
-[p]accessrole sync @Member
-```
-
-Remove a key role:
-
-```text
-[p]accessrole removekey @🔑 Wardogs
-```
-
-Remove all configured key roles and remove the access role from members:
-
-```text
-[p]accessrole clear
-```
-
-Forget the access-role setting without modifying existing member roles:
-
-```text
-[p]accessrole unset
-```
-
-`[p]ar` is an alias for `[p]accessrole`.
-
-## Discord permissions / intents
-
-The bot needs:
-
-- **Manage Roles** permission.
-- Its highest role must be above the configured access role.
-- **Server Members Intent** should be enabled so full-server synchronization can reliably see every existing member and receive member role updates.
-
-The key roles themselves only need to be readable; the bot does not modify them.
+Боту нужны `Manage Roles`, включённый Server Members Intent и роль выше общей роли доступа.
