@@ -4,8 +4,8 @@
   ],
   "name": "AccessRoleCheck",
   "short": "Keeps a visual access role in sync with configured key roles.",
-  "description": "Automatically grants a configured access role only when a member has at least one explicitly configured key role, removes it when no key roles remain, handles join-time roles, reacts to later role changes, and can synchronize all existing members. Channel/category visibility, Administrator permission, server ownership, and other effective permissions are intentionally ignored.",
-  "install_msg": "Loaded `accessrolecheck`. Configure it with `[p]accessrole set @AccessRole`, add key roles with `[p]accessrole addkey @KeyRole`, then use `[p]accessrole sync` if needed. Existing members are also synchronized automatically when the configuration changes and on bot startup.",
+  "description": "Automatically grants a configured access role only when a member has at least one explicitly configured key role and removes it when no key roles remain. Handles joins, role changes, deleted/stale key roles, access-role replacement, startup reconciliation, and full manual synchronization. Effective channel permissions and ownership are intentionally ignored.",
+  "install_msg": "Loaded `accessrolecheck`. Configure it with `[p]accessrole set @AccessRole`, add key roles with `[p]accessrole addkey @KeyRole`, then use `[p]accessrole sync` if needed. Existing members are reconciled automatically on configuration changes and startup.",
   "tags": [
     "roles",
     "access",
