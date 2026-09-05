@@ -15,7 +15,7 @@ class AccessRoleCheck(commands.Cog):
     """Keep one visual access role synchronized with a set of key roles."""
 
     __author__ = "neuropolimer"
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -325,7 +325,7 @@ class AccessRoleCheck(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def accessrole(self, ctx: commands.Context) -> None:
         """Configure automatic key-role -> access-role synchronization."""
-        await self._send_status(ctx)
+        await self._send_command_overview(ctx)
 
     @accessrole.command(name="set")
     async def accessrole_set(self, ctx: commands.Context, role: discord.Role) -> None:
@@ -493,6 +493,25 @@ class AccessRoleCheck(commands.Cog):
         async with ctx.typing():
             counts, complete = await self._sync_guild(ctx.guild)
         await ctx.send(self._format_sync_result(counts, complete))
+
+    async def _send_command_overview(self, ctx: commands.Context) -> None:
+        prefix = ctx.clean_prefix
+        command = ctx.invoked_with or "accessrole"
+
+        text = (
+            "**AccessRoleCheck — команды**\n"
+            f"\`{prefix}{command} set @роль\` — установить общую роль доступа.\n"
+            f"\`{prefix}{command} addkey @роль\` — добавить роль-ключ.\n"
+            f"\`{prefix}{command} removekey @роль\` — удалить роль-ключ.\n"
+            f"\`{prefix}{command} clear\` — удалить все роли-ключи.\n"
+            f"\`{prefix}{command} unset\` — сбросить роль доступа в настройках.\n"
+            f"\`{prefix}{command} list\` — показать текущий конфиг.\n"
+            f"\`{prefix}{command} sync\` — пересчитать всех участников.\n"
+            f"\`{prefix}{command} sync @участник\` — пересчитать одного участника.\n\n"
+            "Логика: есть хотя бы одна роль-ключ → роль доступа выдаётся; "
+            "не осталось ни одной роли-ключа → роль доступа снимается."
+        )
+        await ctx.send(text)
 
     async def _send_status(self, ctx: commands.Context) -> None:
         settings = await self.config.guild(ctx.guild).all()
