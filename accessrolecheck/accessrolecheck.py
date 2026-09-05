@@ -500,14 +500,14 @@ class AccessRoleCheck(commands.Cog):
 
         text = (
             "**AccessRoleCheck — команды**\n"
-            f"\`{prefix}{command} set @роль\` — установить общую роль доступа.\n"
-            f"\`{prefix}{command} addkey @роль\` — добавить роль-ключ.\n"
-            f"\`{prefix}{command} removekey @роль\` — удалить роль-ключ.\n"
-            f"\`{prefix}{command} clear\` — удалить все роли-ключи.\n"
-            f"\`{prefix}{command} unset\` — сбросить роль доступа в настройках.\n"
-            f"\`{prefix}{command} list\` — показать текущий конфиг.\n"
-            f"\`{prefix}{command} sync\` — пересчитать всех участников.\n"
-            f"\`{prefix}{command} sync @участник\` — пересчитать одного участника.\n\n"
+            f"`{prefix}{command} set @роль` — установить общую роль доступа.\n"
+            f"`{prefix}{command} addkey @роль` — добавить роль-ключ.\n"
+            f"`{prefix}{command} removekey @роль` — удалить роль-ключ.\n"
+            f"`{prefix}{command} clear` — удалить все роли-ключи.\n"
+            f"`{prefix}{command} unset` — сбросить роль доступа в настройках.\n"
+            f"`{prefix}{command} list` — показать текущий конфиг.\n"
+            f"`{prefix}{command} sync` — пересчитать всех участников.\n"
+            f"`{prefix}{command} sync @участник` — пересчитать одного участника.\n\n"
             "Логика: есть хотя бы одна роль-ключ → роль доступа выдаётся; "
             "не осталось ни одной роли-ключа → роль доступа снимается."
         )
