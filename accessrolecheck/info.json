@@ -3,9 +3,9 @@
     "neuropolimer"
   ],
   "name": "AccessRoleCheck",
-  "short": "Keeps a visual access role in sync with configured key roles.",
-  "description": "Automatically grants a configured access role only when a member has at least one explicitly configured key role and removes it when no key roles remain. Handles joins, role changes, deleted/stale key roles, access-role replacement, startup reconciliation, and full manual synchronization. Effective channel permissions and ownership are intentionally ignored.",
-  "install_msg": "Loaded `accessrolecheck`. Configure it with `[p]accessrole set @AccessRole`, add key roles with `[p]accessrole addkey @KeyRole`, then use `[p]accessrole sync` if needed. Existing members are reconciled automatically on configuration changes and startup.",
+  "short": "Synchronizes multiple independent access roles with their own key roles.",
+  "description": "Automatically synchronizes multiple independent target roles. Each target role has its own configured set of key roles: if a member has at least one key for that target, the target role is granted; otherwise it is removed. Existing v1 single-role configuration is migrated automatically. Effective channel permissions and ownership are intentionally ignored.",
+  "install_msg": "Loaded `accessrolecheck`. Existing v1 settings migrate automatically. Create another independent group with `[p]accessrole addcategory @TargetRole @KeyRole`, inspect everything with `[p]accessrole list`, and run `[p]accessrole sync` if needed.",
   "tags": [
     "roles",
     "access",
