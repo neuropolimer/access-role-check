@@ -380,14 +380,14 @@ class AccessRoleCheck(commands.Cog):
     ) -> None:
         """Add a managed target role and optionally its initial key roles."""
         if target_role == ctx.guild.default_role:
-            await ctx.send("\`@everyone\` нельзя использовать как выдаваемую роль.")
+            await ctx.send("`@everyone` нельзя использовать как выдаваемую роль.")
             return
         if target_role.managed:
             await ctx.send("Эта роль управляется Discord или интеграцией.")
             return
         if not self._can_manage_role(ctx.guild, target_role):
             await ctx.send(
-                "Я не могу управлять этой ролью. Подними роль бота выше неё и проверь \`Manage Roles\`."
+                "Я не могу управлять этой ролью. Подними роль бота выше неё и проверь `Manage Roles`."
             )
             return
         if any(role.id == target_role.id for role in key_roles):
@@ -417,7 +417,7 @@ class AccessRoleCheck(commands.Cog):
         else:
             await ctx.send(
                 f"Добавлена категория **{target_role.name}**. "
-                f"Теперь добавь ключ: \`{ctx.clean_prefix}accessrole addkey @{target_role.name} @РольКлюч\`."
+                f"Теперь добавь ключ: `{ctx.clean_prefix}accessrole addkey @{target_role.name} @РольКлюч`."
             )
 
     @accessrole.command(name="removecategory", aliases=["delcategory", "delete"])
@@ -469,7 +469,7 @@ class AccessRoleCheck(commands.Cog):
         if target_key not in profiles:
             await ctx.send(
                 f"Сначала добавь **{target_role.name}** как категорию: "
-                f"\`{ctx.clean_prefix}accessrole addcategory @{target_role.name}\`."
+                f"`{ctx.clean_prefix}accessrole addcategory @{target_role.name}`."
             )
             return
 
@@ -595,7 +595,7 @@ class AccessRoleCheck(commands.Cog):
         await self._migrate_legacy_config(ctx.guild)
         profiles, _ = await self._configured_profiles(ctx.guild)
         if not profiles:
-            await ctx.send("Нет настроенных категорий. Используй \`accessrole addcategory\`.")
+            await ctx.send("Нет настроенных категорий. Используй `accessrole addcategory`.")
             return
 
         if member is not None:
@@ -618,15 +618,15 @@ class AccessRoleCheck(commands.Cog):
 
         text = (
             "**AccessRoleCheck — команды**\n"
-            f"\`{prefix}{command} addcategory @ВыдаваемаяРоль [@Ключ ...]\` — создать независимую категорию.\n"
-            f"\`{prefix}{command} addkey @ВыдаваемаяРоль @Ключ\` — добавить ключ к конкретной категории.\n"
-            f"\`{prefix}{command} removekey @ВыдаваемаяРоль @Ключ\` — удалить ключ.\n"
-            f"\`{prefix}{command} removecategory @ВыдаваемаяРоль\` — удалить категорию и снять её роль.\n"
-            f"\`{prefix}{command} clear @ВыдаваемаяРоль\` — удалить все ключи одной категории.\n"
-            f"\`{prefix}{command} clear\` — удалить все категории и снять управляемые роли.\n"
-            f"\`{prefix}{command} list\` — показать весь конфиг.\n"
-            f"\`{prefix}{command} sync\` — пересчитать всех участников.\n"
-            f"\`{prefix}{command} sync @Участник\` — пересчитать одного участника.\n\n"
+            f"`{prefix}{command} addcategory @ВыдаваемаяРоль [@Ключ ...]` — создать независимую категорию.\n"
+            f"`{prefix}{command} addkey @ВыдаваемаяРоль @Ключ` — добавить ключ к конкретной категории.\n"
+            f"`{prefix}{command} removekey @ВыдаваемаяРоль @Ключ` — удалить ключ.\n"
+            f"`{prefix}{command} removecategory @ВыдаваемаяРоль` — удалить категорию и снять её роль.\n"
+            f"`{prefix}{command} clear @ВыдаваемаяРоль` — удалить все ключи одной категории.\n"
+            f"`{prefix}{command} clear` — удалить все категории и снять управляемые роли.\n"
+            f"`{prefix}{command} list` — показать весь конфиг.\n"
+            f"`{prefix}{command} sync` — пересчитать всех участников.\n"
+            f"`{prefix}{command} sync @Участник` — пересчитать одного участника.\n\n"
             "Каждая выдаваемая роль имеет собственный набор ключей и не зависит от остальных."
         )
         await ctx.send(text)
@@ -648,12 +648,12 @@ class AccessRoleCheck(commands.Cog):
             keys = [ctx.guild.get_role(role_id) for role_id in sorted(key_ids)]
             keys = [role for role in keys if role is not None]
             if keys:
-                key_text = ", ".join(f"**{role.name}** (\`{role.id}\`)" for role in keys)
+                key_text = ", ".join(f"**{role.name}** (`{role.id}`)" for role in keys)
             else:
                 key_text = "ключей нет"
 
             blocks.append(
-                f"\n**{target.name}** (\`{target.id}\`)\n"
+                f"\n**{target.name}** (`{target.id}`)\n"
                 f"Ключи: {key_text}"
             )
 
@@ -696,6 +696,6 @@ class AccessRoleCheck(commands.Cog):
         if not complete:
             text += (
                 " Внимание: кэш участников выглядит неполным. Для полной проверки включи "
-                "Server Members Intent у бота и повтори \`accessrole sync\`."
+                "Server Members Intent у бота и повтори `accessrole sync`."
             )
         return text
